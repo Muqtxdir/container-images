@@ -33,7 +33,6 @@ accounts:
     - username: ${USER_NAME}
       uid: ${USER_UID}
       gid: ${USER_GID}
-      home: /home/${USER_NAME}
 
 paths:
   - path: /usr/local/bin
@@ -63,7 +62,6 @@ FROM scratch
 COPY --link --from=builder /rootfs /
 
 ARG USER_NAME
-WORKDIR /home/${USER_NAME}
 USER ${USER_NAME}
 
 ENTRYPOINT ["tini", "--", "python"]

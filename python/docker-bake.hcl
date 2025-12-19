@@ -15,7 +15,7 @@ variable "PYTHON" {
 }
 
 target "default" {
-    name = "python-${replace(version, ".", "")}"
+    name = "python-${replace(version, ".", "-")}"
     description = "Build Distroless Python images"
     matrix = {
         version = PYTHON
@@ -37,7 +37,7 @@ target "default" {
         "type=provenance,mode=max",
         "type=sbom,generator=docker/buildkit-syft-scanner"
     ]
-    tags = ["ghcr.io/${GITHUB_REPOSITORY}/python:${version}"]
+    tags = ["ghcr.io/${lower(GITHUB_REPOSITORY)}/python:${version}"]
     labels = {
       "org.opencontainers.image.created" = "${timestamp()}"
       "org.opencontainers.image.authors" = "${GITHUB_ACTOR}"
