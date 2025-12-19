@@ -34,26 +34,19 @@ accounts:
       uid: ${USER_UID}
       gid: ${USER_GID}
 
-paths:
-  - path: /usr/local/bin
-    type: directory
-    permissions: 0o755
-  - path: /usr/local/bin/python
-    type: symlink
-    source: /usr/bin/python3
-  - path: /usr/local/bin/python3
-    type: symlink
-    source: /usr/bin/python3
-  - path: /usr/local/bin/python${PYTHON_VERSION}
-    type: symlink
-    source: /usr/bin/python${PYTHON_VERSION}
 EOF
 
-# Build rootfs via apko
+# Build rootfs via apko and create symlinks
 RUN <<-EOT
 	apko build-minirootfs /base.apko.yml /rootfs.tar
 	mkdir -p /rootfs
-	tar -xf /rootfs.tar -C /rootfs
+	tar -xpf /rootfs.tar -C /rootfs
+
+	# Create symlinks in /usr/local/bin manually
+	mkdir -p /rootfs/usr/local/bin
+	ln -sf /usr/bin/python3 /rootfs/usr/local/bin/python
+	ln -sf /usr/bin/python3 /rootfs/usr/local/bin/python3
+	ln -sf /usr/bin/python${PYTHON_VERSION} /rootfs/usr/local/bin/python${PYTHON_VERSION}
 EOT
 
 
