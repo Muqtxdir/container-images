@@ -29,6 +29,10 @@ jobs:
     name: python
     needs: targets
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
     concurrency:
       group: ${{ github.ref }}-${{ github.workflow }}-${{ matrix.target }}
       cancel-in-progress: true
@@ -77,7 +81,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
