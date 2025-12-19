@@ -73,9 +73,10 @@ jobs:
           sbom: true
 
       - name: Scan with Trivy
+        if: github.ref_name == 'main'
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ghcr.io/${{ github.repository }}/python:${{ matrix.target.args.PYTHON_VERSION }}
+          image-ref: ${{ fromJSON(steps.bake.outputs.metadata)[matrix.target]['image.name'] }}
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
