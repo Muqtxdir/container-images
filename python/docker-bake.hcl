@@ -11,7 +11,7 @@ variable "GITHUB_ACTOR" {
 }
 
 variable "PYTHON" {
-    default = ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    default = ["3.10", "3.11", "3.12", "3.13", "3.14", "3", "latest"]
 }
 
 target "default" {
@@ -21,7 +21,7 @@ target "default" {
         version = PYTHON
     }
     args = {
-        PYTHON_VERSION = "${version}"
+        PYTHON_VERSION = "${replace(version, "latest", "3")}"
         USER_GID  = "65532"
         USER_UID  = "65532"
         USER_NAME = "nonroot"

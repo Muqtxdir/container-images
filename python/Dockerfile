@@ -58,4 +58,3 @@ ARG USER_NAME
 USER ${USER_NAME}
 
 ENTRYPOINT ["tini", "--", "python"]
-CMD ["--help"]
