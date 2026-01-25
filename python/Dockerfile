@@ -61,6 +61,7 @@ RUN <<-EOT
     rm -rf /rootfs/usr/local/bin/{pip*,idle*,pydoc*,python*-config} \
            /rootfs/usr/local/lib/{libtcl*.so*,tcl*,tk*,itcl*,thread*} \
            /rootfs/usr/local/lib/python*/{tkinter,idlelib,ensurepip,pydoc_data,turtle.py,turtledemo,__phello__} \
+           /rootfs/usr/local/lib/python*/site-packages/{pip,pip-*,setuptools,setuptools-*,wheel,wheel-*} \
            /rootfs/usr/local/share/{man,terminfo}
 EOT
 
