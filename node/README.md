@@ -18,6 +18,10 @@ Minimal, Node.js container images built from scratch using [official Node.js bin
 | 24 | LTS (Krypton) | `muqtxdir/node:24` | `ghcr.io/muqtxdir/container-images/node:24` |
 | 22 | LTS (Jod) | `muqtxdir/node:22` | `ghcr.io/muqtxdir/container-images/node:22` |
 | 20 | LTS (Iron) | `muqtxdir/node:20` | `ghcr.io/muqtxdir/container-images/node:20` |
+| 23 | End of Life | `muqtxdir/node:23` | `ghcr.io/muqtxdir/container-images/node:23` |
+| 21 | End of Life | `muqtxdir/node:21` | `ghcr.io/muqtxdir/container-images/node:21` |
+| 18 | End of Life | `muqtxdir/node:18` | `ghcr.io/muqtxdir/container-images/node:18` |
+| 16 | End of Life | `muqtxdir/node:16` | `ghcr.io/muqtxdir/container-images/node:16` |
 
 **Note:** Node.js 25 is also available as `latest` tag. Node.js 24 is also available as `lts` tag on both registries.
 

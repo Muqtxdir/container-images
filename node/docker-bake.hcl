@@ -24,6 +24,7 @@ variable "NODE_LTS_VERSION" {
 
 variable "NODE_VERSIONS_LIST" {
     default = [
+    "16", "18", "21", "23", # EOL versions
     "20", "22", "24", # LTS versions
     "25"] # Current version
 }

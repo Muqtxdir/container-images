@@ -7,6 +7,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ARG USER_GID
 ARG USER_UID
 ARG USER_NAME
+ARG NODE_VERSION
 COPY <<EOF /base.apko.yml
 contents:
   keyring:
@@ -14,26 +15,7 @@ contents:
   repositories:
     - https://packages.wolfi.dev/os
   packages:
-    - c-ares
-    - ca-certificates-bundle
-    - glibc
-    - glibc-locale-posix
-    - icu78-data-full
-    - ld-linux
-    - libbrotlicommon1
-    - libbrotlidec1
-    - libbrotlienc1
-    - libcrypt1
-    - libcrypto3
-    - libgcc
-    - libicu78
-    - libnghttp2-14
-    - libssl3
-    - libstdc++
-    - libuv
-    - libxcrypt
-    - zlib
-    - tzdata
+    - nodejs-${NODE_VERSION}
     - tini
 
 accounts:
@@ -51,31 +33,8 @@ RUN <<-EOT
     apko build-minirootfs /base.apko.yml /rootfs.tar.gz
     mkdir -p /rootfs/usr/local/{bin,include,lib,share}
     tar -xpf /rootfs.tar.gz -C /rootfs
-EOT
-
-ARG NODE_VERSION
-RUN <<-EOT
-    # Determine architecture for Node.js download
-    ARCH=$(uname -m)
-    if [ "$ARCH" = "x86_64" ]; then NODE_ARCH="x64"; fi
-    if [ "$ARCH" = "aarch64" ]; then NODE_ARCH="arm64"; fi
-
-    # Parse SHASUMS256.txt to find the latest version for this architecture
-    LATEST_VERSION=$(curl -fsSL "https://nodejs.org/dist/latest-v${NODE_VERSION}.x/SHASUMS256.txt" \
-        | grep -oE "node-v${NODE_VERSION}\.[0-9]+\.[0-9]+-linux-${NODE_ARCH}\.tar\.xz" \
-        | sed "s/node-v\(.*\)-linux-${NODE_ARCH}\.tar\.xz/\1/" \
-        | sort -V \
-        | tail -1)
-
-    # Download and extract official Node.js binary
-    curl -fsSL "https://nodejs.org/dist/latest-v${NODE_VERSION}.x/node-v${LATEST_VERSION}-linux-${NODE_ARCH}.tar.xz" \
-        | tar -xJ --strip-components=1 -C /rootfs/usr/local/
-
-    # Remove package managers and unnecessary components
-    rm -rf /rootfs/usr/local/lib/node_modules/{npm,corepack} \
-           /rootfs/usr/local/bin/{npm,npx,corepack} \
-           /rootfs/usr/local/share/{man,doc,systemtap} \
-           /rootfs/usr/local/include/node/openssl
+    # Create symlinks for compatibility with official Node.js images
+    ln -sf /usr/bin/node /rootfs/usr/local/bin/node
 EOT
 
 FROM scratch
