@@ -32,7 +32,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
     concurrency:
       group: ${{ github.ref }}-${{ github.workflow }}-${{ matrix.target }}
       cancel-in-progress: true
@@ -77,21 +76,6 @@ jobs:
           push: ${{ github.ref_name == 'main' }}
           provenance: true
           sbom: true
-
-      - name: Scan with Trivy
-        if: github.ref_name == 'main'
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ fromJSON(steps.bake.outputs.metadata)[matrix.target]['image.name'] }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH,MEDIUM'
-
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
 
       - name: Update Docker Hub Description
         if: github.ref_name == 'main' && matrix.target == 'python-3-14'
