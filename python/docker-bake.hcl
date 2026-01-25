@@ -11,7 +11,7 @@ variable "GITHUB_ACTOR" {
 }
 
 variable "PYTHON" {
-    default = ["3", "latest",
+    default = [
     "3.8", "3.9", # EOL versions
     "3.10", "3.11", "3.12", "3.13", "3.14"]
 }
@@ -26,10 +26,10 @@ target "default" {
         USER_GID  = "65532"
         USER_UID  = "65532"
         USER_NAME = "nonroot"
+        PYTHON_VERSION = version
     }
     contexts = {
       "container-base" = "docker-image://ghcr.io/wolfi-dev/sdk:latest"
-      "python-base"    = "docker-image://docker.io/library/python:${version}"
     }
     dockerfile = "Dockerfile"
     platforms = ["linux/amd64", "linux/arm64"]

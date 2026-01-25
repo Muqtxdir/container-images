@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.19
 FROM container-base AS builder
 
-SHELL ["/bin/sh", "-euxo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 # Generate apko config dynamically for current architecture only
 ARG USER_GID
@@ -47,28 +47,24 @@ EOF
 
 # Build rootfs via apko and create symlinks
 RUN <<-EOT
-    apko build-minirootfs /base.apko.yml /rootfs.tar
-    mkdir -p /rootfs
-    tar -xpf /rootfs.tar -C /rootfs
-    mkdir -p /rootfs/usr/local/bin /rootfs/usr/local/lib /rootfs/usr/local/include
+    apko build-minirootfs /base.apko.yml /rootfs.tar.gz
+    mkdir -p /rootfs/usr/local/{bin,include,lib,share}
+    tar -xpf /rootfs.tar.gz -C /rootfs
 EOT
 
-FROM python-base AS python
+COPY --from=ghcr.io/astral-sh/uv /uv /bin/uv
 
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
-
+ARG PYTHON_VERSION
 RUN <<-EOT
-    pip uninstall -y pip setuptools wheel
-    rm -rf /usr/local/lib/python*/site-packages/pip* \
-           /usr/local/lib/python*/site-packages/setuptools* \
-           /usr/local/lib/python*/site-packages/wheel* \
-           /usr/local/bin/pip*
+    mkdir -p /python
+    uv python install ${PYTHON_VERSION} --install-dir=/python --no-bin
+    cd python/*/
+    for dir in bin include lib share; do mv $dir/* /rootfs/usr/local/$dir/; done
 EOT
 
 FROM scratch
 
 COPY --from=builder /rootfs /
-COPY --from=python /usr/local/ /usr/local/
 
 ARG USER_NAME
 USER ${USER_NAME}
