@@ -55,6 +55,12 @@ RUN <<-EOT
     uv python install ${PYTHON_VERSION} --install-dir=/python --no-bin
     cd python/*/
     for dir in bin include lib share; do mv $dir/* /rootfs/usr/local/$dir/; done
+
+    # Remove unnecessary components
+    rm -rf /rootfs/usr/local/bin/{pip*,idle*,pydoc*,python*-config} \
+           /rootfs/usr/local/lib/{libtcl*.so*,tcl*,tk*,itcl*,thread*} \
+           /rootfs/usr/local/lib/python*/{tkinter,idlelib,ensurepip,pydoc_data,turtle.py,turtledemo,__phello__} \
+           /rootfs/usr/local/share/{man,terminfo}
 EOT
 
 FROM scratch
