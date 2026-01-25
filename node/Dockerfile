@@ -20,6 +20,12 @@ contents:
     - ld-linux
     - libgcc
     - libstdc++
+    - libatomic
+    - brotli
+    - c-ares
+    - icu
+    - libuv
+    - nghttp2
     - libcrypto3
     - libssl3
     - zlib
