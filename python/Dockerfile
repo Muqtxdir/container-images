@@ -7,7 +7,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 ARG USER_GID
 ARG USER_UID
 ARG USER_NAME
-COPY <<-EOF /base.apko.yml
+COPY <<EOF /base.apko.yml
 contents:
   keyring:
     - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
@@ -18,15 +18,23 @@ contents:
     - glibc
     - glibc-locale-posix
     - ld-linux
-    - libgcc
-    - libstdc++
+    - libbz2-1
+    - libcrypt1
     - libcrypto3
-    - libssl3
-    - zlib
     - libexpat1
     - libffi
-    - sqlite-libs
+    - libgcc
+    - libssl3
+    - libstdc++
+    - libuuid
+    - libxcrypt
+    - mpdecimal
+    - ncurses
     - ncurses-terminfo-base
+    - readline
+    - sqlite-libs
+    - xz
+    - zlib
     - tzdata
     - tini
 
@@ -38,7 +46,6 @@ accounts:
     - username: ${USER_NAME}
       uid: ${USER_UID}
       gid: ${USER_GID}
-
 EOF
 
 # Build rootfs via apko and create symlinks
