@@ -6,21 +6,45 @@ variable "GITHUB_REPOSITORY" {
     default = "muqtxdir/container-images"
 }
 
+variable "DOCKER_REPOSITORY" {
+    default = "muqtxdir"
+}
+
 variable "GITHUB_ACTOR" {
     default = "Muqtxdir"
 }
 
-variable "PYTHON" {
+variable "PYTHON_LATEST_VERSION" {
+    default = "3.14"
+}
+
+variable "PYTHON_VERSIONS_LIST" {
     default = [
     "3.8", "3.9", # EOL versions
     "3.10", "3.11", "3.12", "3.13", "3.14"]
+}
+
+function "python_image_tags" {
+    params = [version, github_repo, docker_repo, latest_version]
+    result = concat(
+        [
+            "ghcr.io/${lower(github_repo)}/python:${version}",
+            "docker.io/${lower(docker_repo)}/python:${version}"
+        ],
+        version == latest_version ? [
+            "ghcr.io/${lower(github_repo)}/python:latest",
+            "ghcr.io/${lower(github_repo)}/python:3",
+            "docker.io/${lower(docker_repo)}/python:latest",
+            "docker.io/${lower(docker_repo)}/python:3"
+        ] : []
+    )
 }
 
 target "default" {
     name = "python-${replace(version, ".", "-")}"
     description = "Build Distroless Python images"
     matrix = {
-        version = PYTHON
+        version = PYTHON_VERSIONS_LIST
     }
     args = {
         USER_GID  = "65532"
@@ -39,7 +63,7 @@ target "default" {
         "type=provenance,mode=max",
         "type=sbom,generator=docker/buildkit-syft-scanner"
     ]
-    tags = ["ghcr.io/${lower(GITHUB_REPOSITORY)}/python:${version}"]
+    tags = python_image_tags(version, GITHUB_REPOSITORY, DOCKER_REPOSITORY, PYTHON_LATEST_VERSION)
     labels = {
       "org.opencontainers.image.created" = "${timestamp()}"
       "org.opencontainers.image.authors" = "${GITHUB_ACTOR}"
