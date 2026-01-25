@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.19
 FROM container-base AS builder
 
-SHELL ["/bin/sh", "-euxo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 # Generate apko config dynamically for current architecture only
 ARG USER_GID
@@ -47,17 +47,18 @@ EOF
 
 # Build rootfs via apko and create symlinks
 RUN <<-EOT
-    apko build-minirootfs /base.apko.yml /rootfs.tar
+    apko build-minirootfs /base.apko.yml /rootfs.tar.gz
     mkdir -p /rootfs/usr/local/{bin,include,lib,share}
-    tar -xpf /rootfs.tar -C /rootfs
+    tar -xpf /rootfs.tar.gz -C /rootfs
 EOT
 
 COPY --from=ghcr.io/astral-sh/uv /uv /bin/uv
 
 ARG PYTHON_VERSION
-WORKDIR /{PYTHON_VERSION}
 RUN <<-EOT
-    uv python install {PYTHON_VERSION} --install-dir=/{PYTHON_VERSION} --no-bin
+    mkdir -p /python
+    uv python install ${PYTHON_VERSION} --install-dir=/python --no-bin
+    cd python/*/
     for dir in bin include lib share; do mv $dir/* /rootfs/usr/local/$dir/; done
 EOT
 
