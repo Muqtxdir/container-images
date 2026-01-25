@@ -23,14 +23,9 @@ contents:
     - libcrypto3
     - libssl3
     - zlib
-    - xz
-    - libbz2-1
     - libexpat1
     - libffi
-    - readline
-    - ncurses
     - sqlite-libs
-    - mpdecimal
     - tzdata
     - tini
 
