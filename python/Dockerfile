@@ -26,6 +26,7 @@ contents:
     - libexpat1
     - libffi
     - sqlite-libs
+    - ncurses-terminfo-base
     - tzdata
     - tini
 
