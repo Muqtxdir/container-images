@@ -12,14 +12,12 @@ Minimal, Node.js container images built from scratch using [official Node.js bin
 
 ## Available Versions
 
-| Version | Status | EOL Date | Docker Hub Tag | GitHub Tag |
-|---------|--------|----------|----------------|------------|
-| 25 | Current | June 2025 | `muqtxdir/node:25` | `ghcr.io/muqtxdir/container-images/node:25` |
-| 24 | LTS (Amethyst) | April 2029 | `muqtxdir/node:24` | `ghcr.io/muqtxdir/container-images/node:24` |
-| 22 | LTS (Jod) | April 2027 | `muqtxdir/node:22` | `ghcr.io/muqtxdir/container-images/node:22` |
-| 20 | LTS (Iron) | April 2026 | `muqtxdir/node:20` | `ghcr.io/muqtxdir/container-images/node:20` |
-| 23 | End of Life | June 2024 | `muqtxdir/node:23` | `ghcr.io/muqtxdir/container-images/node:23` |
-| 18 | End of Life | April 2025 | `muqtxdir/node:18` | `ghcr.io/muqtxdir/container-images/node:18` |
+| Version | Status | Docker Hub Tag | GitHub Tag |
+|---------|--------|----------------|------------|
+| 25 | Current | `muqtxdir/node:25` | `ghcr.io/muqtxdir/container-images/node:25` |
+| 24 | LTS (Krypton) | `muqtxdir/node:24` | `ghcr.io/muqtxdir/container-images/node:24` |
+| 22 | LTS (Jod) | `muqtxdir/node:22` | `ghcr.io/muqtxdir/container-images/node:22` |
+| 20 | LTS (Iron) | `muqtxdir/node:20` | `ghcr.io/muqtxdir/container-images/node:20` |
 
 **Note:** Node.js 25 is also available as `latest` tag. Node.js 24 is also available as `lts` tag on both registries.
 

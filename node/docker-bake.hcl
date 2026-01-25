@@ -24,8 +24,8 @@ variable "NODE_LTS_VERSION" {
 
 variable "NODE_VERSIONS_LIST" {
     default = [
-    "18", "23", # EOL versions
-    "20", "22", "24", "25"]
+    "20", "22", "24", # LTS versions
+    "25"] # Current version
 }
 
 function "node_image_tags" {
