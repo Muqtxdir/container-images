@@ -14,6 +14,10 @@ variable "GITHUB_ACTOR" {
     default = "Muqtxdir"
 }
 
+variable "GITHUB_RUN_ID" {
+    default = "local"
+}
+
 variable "PYTHON_LATEST_VERSION" {
     default = "3.14"
 }
@@ -60,7 +64,7 @@ target "default" {
     output = ["type=image,compression=zstd,compression-level=19,oci-mediatypes=true,force-compression=true"]
     pull = true
     attest = [
-        "type=provenance,mode=max",
+        "type=provenance,mode=max,builder-id=https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
         "type=sbom,generator=docker/buildkit-syft-scanner"
     ]
     tags = python_image_tags(version, GITHUB_REPOSITORY, DOCKER_REPOSITORY, PYTHON_LATEST_VERSION)
