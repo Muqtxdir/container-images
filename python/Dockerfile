@@ -61,8 +61,12 @@ ARG PYTHON_VERSION
 RUN <<-EOT
     mkdir -p /python
     uv python install ${PYTHON_VERSION} --install-dir=/python --no-bin
-    cd python/*/
-    for dir in bin include lib share; do mv $dir/* /rootfs/usr/local/$dir/; done
+
+    # Get the first matching Python installation directory
+    python_dir=$(ls -d /python/cpython-* 2>/dev/null | head -n1)
+    for dir in bin include lib share; do
+        mv "$python_dir/$dir"/* /rootfs/usr/local/$dir/
+    done
 
     # Remove unnecessary components
     rm -rf /rootfs/usr/local/bin/{pip*,idle*,pydoc*,python*-config} \
