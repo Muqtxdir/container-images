@@ -1,4 +1,47 @@
 # syntax=docker/dockerfile:1.19
+
+# ── Fetch available Python versions from uv ──
+FROM container-base AS uv-versions
+COPY --from=astral-sh/uv /uv /usr/local/bin/uv
+COPY <<'EOF' /fetch-versions.sh
+#!/bin/sh
+set -eu
+
+# Fetch available CPython versions from uv and output a Docker Bake override JSON.
+# Produces the latest patch per minor version in ascending order, plus a "latest" entry.
+#
+# Example output: ["3.8.20","3.9.25","3.10.19",...,"3.15.0a6","latest"]
+
+# Step 1: Get cpython versions, skip freethreaded, extract version numbers
+#   uv lists newest first — we rely on this ordering for dedup
+uv python list --python-preference only-managed \
+    | grep '^cpython-' \
+    | grep -v '+freethreaded' \
+    | cut -d- -f2 \
+    > /tmp/all-versions.txt
+
+# Step 2: Keep only the latest patch per minor (first occurrence = newest)
+> /tmp/versions.txt
+seen=""
+while read -r version; do
+    minor=$(echo "$version" | cut -d. -f1-2)
+    echo "$seen" | grep -q "$minor" && continue
+    seen="$seen $minor"
+    echo "$version" >> /tmp/versions.txt
+done < /tmp/all-versions.txt
+
+# Step 3: Build bake override JSON with jq
+jq -Rs '
+    split("\n") | map(select(length > 0)) | reverse | . + ["latest"] |
+    { variable: { PYTHON_VERSIONS_LIST: { default: . } } }
+' /tmp/versions.txt
+EOF
+RUN sh /fetch-versions.sh > /versions-override.json
+
+FROM scratch AS uv
+COPY --from=uv-versions /versions-override.json /
+
+# ── Build distroless Python image ──
 FROM container-base AS builder
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
@@ -55,7 +98,7 @@ RUN <<-EOT
     tar -xpf /rootfs.tar.gz -C /rootfs
 EOT
 
-COPY --from=ghcr.io/astral-sh/uv /uv /bin/uv
+COPY --from=astral-sh/uv /uv /bin/uv
 
 ARG PYTHON_VERSION
 RUN <<-EOT

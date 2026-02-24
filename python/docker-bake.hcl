@@ -18,34 +18,47 @@ variable "GITHUB_RUN_ID" {
     default = "local"
 }
 
-variable "PYTHON_LATEST_VERSION" {
-    default = "3.14"
-}
-
 variable "PYTHON_VERSIONS_LIST" {
-    default = [
-    "3.8", "3.9", # EOL versions
-    "3.10", "3.11", "3.12", "3.13", "3.14"]
+    default = ["3.13", "3.14", "latest"]
 }
 
 function "python_image_tags" {
-    params = [version, github_repo, docker_repo, latest_version]
-    result = concat(
-        [
-            "ghcr.io/${lower(github_repo)}/python:${version}",
-            "docker.io/${lower(docker_repo)}/python:${version}"
-        ],
-        version == latest_version ? [
-            "ghcr.io/${lower(github_repo)}/python:latest",
-            "ghcr.io/${lower(github_repo)}/python:3",
-            "docker.io/${lower(docker_repo)}/python:latest",
-            "docker.io/${lower(docker_repo)}/python:3"
-        ] : []
-    )
+    params = [version, github_repo, docker_repo]
+    result = version == "latest" ? [
+        "ghcr.io/${lower(github_repo)}/python:latest",
+        "ghcr.io/${lower(github_repo)}/python:3",
+        "docker.io/${lower(docker_repo)}/python:latest",
+        "docker.io/${lower(docker_repo)}/python:3"
+    ] : length(regexall("[a-zA-Z]", version)) > 0 ? [
+        "ghcr.io/${lower(github_repo)}/python:${version}",
+        "docker.io/${lower(docker_repo)}/python:${version}"
+    ] : [
+        "ghcr.io/${lower(github_repo)}/python:${version}",
+        "docker.io/${lower(docker_repo)}/python:${version}",
+        "ghcr.io/${lower(github_repo)}/python:${join(".", slice(split(".", version), 0, 2))}",
+        "docker.io/${lower(docker_repo)}/python:${join(".", slice(split(".", version), 0, 2))}"
+    ]
+}
+
+target "_common" {
+    dockerfile = "Dockerfile"
+    contexts = {
+      "container-base" = "docker-image://ghcr.io/wolfi-dev/sdk:latest"
+      "astral-sh/uv"   = "docker-image://ghcr.io/astral-sh/uv:latest"
+    }
+}
+
+target "uv" {
+    inherits   = ["_common"]
+    target     = "uv"
+    output     = ["type=local,dest=."]
+    no-cache   = true
+    platforms  = ["linux/amd64"]
 }
 
 target "default" {
-    name = "python-${replace(version, ".", "-")}"
+    inherits = ["_common"]
+    name = "python-${version == "latest" ? "latest" : replace(version, ".", "-")}"
     description = "Build Distroless Python images"
     matrix = {
         version = PYTHON_VERSIONS_LIST
@@ -54,12 +67,8 @@ target "default" {
         USER_GID  = "65532"
         USER_UID  = "65532"
         USER_NAME = "nonroot"
-        PYTHON_VERSION = version
+        PYTHON_VERSION = version == "latest" ? "" : version
     }
-    contexts = {
-      "container-base" = "docker-image://ghcr.io/wolfi-dev/sdk:latest"
-    }
-    dockerfile = "Dockerfile"
     platforms = ["linux/amd64", "linux/arm64"]
     output = ["type=image,compression=zstd,compression-level=19,oci-mediatypes=true,force-compression=true"]
     pull = true
@@ -67,7 +76,7 @@ target "default" {
         "type=provenance,mode=max,builder-id=https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
         "type=sbom,generator=docker/buildkit-syft-scanner"
     ]
-    tags = python_image_tags(version, GITHUB_REPOSITORY, DOCKER_REPOSITORY, PYTHON_LATEST_VERSION)
+    tags = python_image_tags(version, GITHUB_REPOSITORY, DOCKER_REPOSITORY)
     labels = {
       "org.opencontainers.image.created" = "${timestamp()}"
       "org.opencontainers.image.authors" = "${GITHUB_ACTOR}"
