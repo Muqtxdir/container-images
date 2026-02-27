@@ -1,0 +1,65 @@
+contents:
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  repositories:
+    - https://packages.wolfi.dev/os
+  packages:
+    - apk-tools
+    - bash
+    - binutils
+    - brotli
+    - build-base
+    - busybox
+    - bzip2
+    - ca-certificates
+    - curl
+    - cyrus-sasl
+    - e2fsprogs
+    - expat
+    - gcc
+    - gdbm
+    - git
+    - glibc
+    - gmp
+    - heimdal
+    - isl
+    - keyutils
+    - krb5
+    - krb5-conf
+    - libffi
+    - libidn2
+    - libpsl
+    - libunistring
+    - libverto
+    - libxcrypt
+    - linux-headers
+    - make
+    - mpc
+    - mpdecimal
+    - mpfr
+    - ncurses
+    - nghttp2
+    - nghttp3
+    - openldap-2.6
+    - openssl
+    - openssf-compiler-options
+    - pcre2
+    - pkgconf
+    - posix-cc-wrappers
+    - readline
+    - sqlite
+    - tini
+    - util-linux
+    - wget
+    - xz
+    - zlib
+    - zstd
+
+accounts:
+  groups:
+    - groupname: nonroot
+      gid: 65532
+  users:
+    - username: nonroot
+      uid: 65532
+      gid: 65532
