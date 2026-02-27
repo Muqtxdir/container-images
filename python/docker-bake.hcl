@@ -117,7 +117,8 @@ target "apk" {
     contexts = {
       "container-base" = "docker-image://ghcr.io/wolfi-dev/sdk:latest"
     }
-    dockerfile = "apk/Dockerfile"
+    context    = "apk"
+    dockerfile = "Dockerfile"
     target = variant
     args = {
         PYTHON_VERSION = version == "latest" ? "" : version
@@ -138,7 +139,8 @@ target "apt" {
     contexts = {
       "container-base" = "docker-image://${distro == "ubuntu" ? "docker.io/library/ubuntu:latest" : "docker.io/library/debian:latest"}"
     }
-    dockerfile = "apt/Dockerfile"
+    context    = "apt"
+    dockerfile = "Dockerfile"
     target = variant
     args = {
         USER_GID       = "65532"
