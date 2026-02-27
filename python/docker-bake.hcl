@@ -90,7 +90,7 @@ target "common" {
     contexts = {
       "astral-sh/uv" = "docker-image://ghcr.io/astral-sh/uv:latest"
     }
-    platforms = ["linux/arm64"]
+    platforms = ["linux/arm64", "linux/amd64"]
     output    = ["type=image,compression=zstd,compression-level=19,oci-mediatypes=true,force-compression=true"]
     pull      = true
     attest = [
