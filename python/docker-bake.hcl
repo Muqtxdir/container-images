@@ -136,7 +136,7 @@ target "apt" {
         variant = ["dev", "minimal"]
     }
     contexts = {
-      "container-base" = "docker-image://${distro == "ubuntu" ? "docker.io/library/ubuntu:latest" : "docker.io/library/debian:latest"}"
+      "container-base" = "docker-image://${distro == "ubuntu" ? "public.ecr.aws/docker/library/ubuntu:latest" : "public.ecr.aws/docker/library/debian:latest"}"
     }
     dockerfile = "apt/Dockerfile"
     target = variant
