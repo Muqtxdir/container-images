@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.19
+#syntax=docker/dockerfile:1.19
 
 # ── Install Python via uv into a staging directory ──
 FROM container-base AS python-builder
@@ -37,7 +37,6 @@ FROM python-base AS minimal
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=tmpfs,target=/var/log <<-EOT
-	apt-mark hold python3 python3-minimal python3.* libpython3*
 	apt-get update
 	apt-get dist-upgrade -y
 	apt-get install -y --no-install-recommends \
@@ -61,7 +60,6 @@ FROM python-base AS dev
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=tmpfs,target=/var/log <<-EOT
-	apt-mark hold python3 python3-minimal python3.* libpython3*
 	apt-get update
 	apt-get dist-upgrade -y
 	apt-get install -y --no-install-recommends \

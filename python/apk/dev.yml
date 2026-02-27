@@ -24,7 +24,6 @@ contents:
     - heimdal
     - isl
     - keyutils
-    - krb5
     - krb5-conf
     - libffi
     - libidn2
