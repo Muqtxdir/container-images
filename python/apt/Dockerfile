@@ -8,7 +8,7 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 COPY --from=astral-sh/uv /uv /bin/uv
 
 ARG PYTHON_VERSION
-RUN --mount=type=bind,source=../install-python.sh,target=/install-python.sh <<-EOT
+RUN --mount=type=bind,source=install-python.sh,target=/install-python.sh <<-EOT
   mkdir -p /staging/usr/local/{bin,include,lib,share}
   sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/staging/usr/local --strip=false
 EOT
@@ -37,6 +37,7 @@ FROM python-base AS minimal
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=tmpfs,target=/var/log <<-EOT
+	apt-mark hold python3 python3-minimal python3.* libpython3*
 	apt-get update
 	apt-get dist-upgrade -y
 	apt-get install -y --no-install-recommends \
@@ -60,6 +61,7 @@ FROM python-base AS dev
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=tmpfs,target=/var/log <<-EOT
+	apt-mark hold python3 python3-minimal python3.* libpython3*
 	apt-get update
 	apt-get dist-upgrade -y
 	apt-get install -y --no-install-recommends \

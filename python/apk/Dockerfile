@@ -4,7 +4,7 @@ FROM container-base AS minimal-builder
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-RUN --mount=type=bind,source=minimal.yml,target=/minimal.yml <<-EOT
+RUN --mount=type=bind,source=apk/minimal.yml,target=/minimal.yml <<-EOT
     apko build-minirootfs /minimal.yml /rootfs.tar.gz
     mkdir -p /rootfs/usr/local/{bin,include,lib,share}
     tar -xpf /rootfs.tar.gz -C /rootfs
@@ -13,7 +13,7 @@ EOT
 COPY --from=astral-sh/uv /uv /bin/uv
 
 ARG PYTHON_VERSION
-RUN --mount=type=bind,source=../install-python.sh,target=/install-python.sh <<-EOT
+RUN --mount=type=bind,source=install-python.sh,target=/install-python.sh <<-EOT
   sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/rootfs/usr/local --strip=true
 EOT
 
@@ -21,7 +21,7 @@ FROM container-base AS dev-builder
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
-RUN --mount=type=bind,source=dev.yml,target=/dev.yml <<-EOT
+RUN --mount=type=bind,source=apk/dev.yml,target=/dev.yml <<-EOT
     apko build-minirootfs /dev.yml /rootfs.tar.gz
     mkdir -p /rootfs/usr/local/{bin,include,lib,share}
     tar -xpf /rootfs.tar.gz -C /rootfs
@@ -30,7 +30,7 @@ EOT
 COPY --from=astral-sh/uv /uv /bin/uv
 
 ARG PYTHON_VERSION
-RUN --mount=type=bind,source=../install-python.sh,target=/install-python.sh <<-EOT
+RUN --mount=type=bind,source=install-python.sh,target=/install-python.sh <<-EOT
   sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/rootfs/usr/local --strip=false
 EOT
 
