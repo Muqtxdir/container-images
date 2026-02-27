@@ -1,39 +1,31 @@
 # Python Images
 
-Minimal, Python container images built from scratch using [uv's standalone Python](https://github.com/astral-sh/python-build-standalone) and [Chainguard Wolfi](https://github.com/wolfi-dev) packages.
+Python container images built using [uv's standalone Python](https://github.com/astral-sh/python-build-standalone), available across multiple base image variants.
 
 ## Features
 
-- **Minimal footprint**: Distroless design with only essential components
+- **Multiple bases**: Wolfi, Debian, and Ubuntu variants
+- **Default & Dev variants**: Python runtime images and full development images with build tools
 - **Security-focused**: Runs as non-root user (UID/GID: 65532)
 - **Modern compression**: Uses Zstandard (zstd) compression for reduced image size
 - **OCI compliant**: Full OCI image specification labels and annotations
 
-## Available Versions
+## Tags
+| Variant | DockerHub Tags | Github Registry Tags |
+| ------- | ---------------| ---------------------|
+| Wolfi/Chainguard | `muqtxdir/python:{version}` | `ghcr.io/muqtxdir/container-images/python:{version}` |
+| Wolfi/Chainguard Dev | `muqtxdir/python:{version}-dev` | `ghcr.io/muqtxdir/container-images/python:{version}-dev` |
+| Debian | `muqtxdir/python:{version}-debian` | `ghcr.io/muqtxdir/container-images/python:{version}-debian` |
+| Debian Dev | `muqtxdir/python:{version}-debian-dev` | `ghcr.io/muqtxdir/container-images/python:{version}-debian-dev` |
+| Ubuntu | `muqtxdir/python:{version}-ubuntu` | `ghcr.io/muqtxdir/container-images/python:{version}-ubuntu` |
+| Ubuntu Dev | `muqtxdir/python:{version}-ubuntu-dev` | `ghcr.io/muqtxdir/container-images/python:{version}-ubuntu-dev` |
 
-| Version | Status | EOL Date | Docker Hub Tag | GitHub Tag |
-|---------|--------|----------|----------------|------------|
-| 3.14 | Supported | October 2030 | `muqtxdir/python:3.14` | `ghcr.io/muqtxdir/container-images/python:3.14` |
-| 3.13 | Supported | October 2029 | `muqtxdir/python:3.13` | `ghcr.io/muqtxdir/container-images/python:3.13` |
-| 3.12 | Supported | October 2028 | `muqtxdir/python:3.12` | `ghcr.io/muqtxdir/container-images/python:3.12` |
-| 3.11 | Supported | October 2027 | `muqtxdir/python:3.11` | `ghcr.io/muqtxdir/container-images/python:3.11` |
-| 3.10 | Supported | October 2026 | `muqtxdir/python:3.10` | `ghcr.io/muqtxdir/container-images/python:3.10` |
-| 3.9 | End of Life | October 2025 | `muqtxdir/python:3.9` | `ghcr.io/muqtxdir/container-images/python:3.9` |
-| 3.8 | End of Life | October 2024 | `muqtxdir/python:3.8` | `ghcr.io/muqtxdir/container-images/python:3.8` |
-
-**Note:** Python 3.14 is also available as `latest` and `3` tags on both registries.
-
-## Usage
-
-- Pull the latest Python Image via `docker`
-    ```
-    docker image pull muqtxdir/python
-    ```
-
-- Pull the latest Python Image via `podman`
-    ```
-    podman image pull muqtxdir/python
-    ```
+## Differences
+| Variant | Default Tags | Dev Tags |
+| --------| -------------| ---------|
+| Wolfi/Chainguard | Replicates Chainguard's `python` tags | Replicates Chainguard's `python` dev tags |
+| Debian | Replicates `python` slim tags | Replicates `python` deafult tags and includes uv |
+| Ubuntu | Same as Debian but based on `ubuntu:latest` | Same as Debian Dev but based on `ubuntu:latest`|
 
 ## Contributing
 
