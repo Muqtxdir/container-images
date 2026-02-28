@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# install-python.sh — Install a CPython version via uv into a distroless rootfs.
+# install-python.sh - Install a CPython version via uv into a distroless rootfs.
 #
 # Usage:
 #   ./install-python.sh [OPTIONS]
@@ -75,13 +75,13 @@ require_cmd() {
 }
 
 # ---------------------------------------------------------------------------
-# Step 0 — Preflight checks
+# Step 0 - Preflight checks
 # ---------------------------------------------------------------------------
 log "checking dependencies..."
 require_cmd uv
 
 if [ ! -d "${ROOTFS_PREFIX}/bin" ]; then
-    die "rootfs not found at ${ROOTFS_PREFIX} — run apko build first"
+    die "rootfs not found at ${ROOTFS_PREFIX} - run apko build first"
 fi
 
 log "target version: ${PYTHON_VERSION:-latest (default)}"
@@ -89,7 +89,7 @@ log "rootfs prefix:  ${ROOTFS_PREFIX}"
 log "strip extras:   ${STRIP_EXTRAS}"
 
 # ---------------------------------------------------------------------------
-# Step 1 — Install Python via uv
+# Step 1 - Install Python via uv
 # ---------------------------------------------------------------------------
 log "installing python via uv into ${INSTALL_DIR}..."
 mkdir -p "${INSTALL_DIR}"
@@ -98,18 +98,18 @@ uv python install ${PYTHON_VERSION} --install-dir="${INSTALL_DIR}" --no-bin
 log "uv install complete"
 
 # ---------------------------------------------------------------------------
-# Step 2 — Locate the installed cpython directory
+# Step 2 - Locate the installed cpython directory
 # ---------------------------------------------------------------------------
 python_dir=$(ls -d "${INSTALL_DIR}"/cpython-* 2>/dev/null | head -n1)
 
 if [ -z "${python_dir}" ]; then
-    die "no cpython directory found under ${INSTALL_DIR} — uv install may have failed"
+    die "no cpython directory found under ${INSTALL_DIR} - uv install may have failed"
 fi
 
 log "found installation at ${python_dir}"
 
 # ---------------------------------------------------------------------------
-# Step 3 — Move runtime files into the rootfs
+# Step 3 - Move runtime files into the rootfs
 # ---------------------------------------------------------------------------
 for dir in bin include lib share; do
     if [ -d "${python_dir}/${dir}" ]; then
@@ -121,7 +121,29 @@ for dir in bin include lib share; do
 done
 
 # ---------------------------------------------------------------------------
-# Step 4 — Strip unnecessary components to minimise image size
+# Step 4 - Clean up uv artifacts and bootstrap fresh pip
+# ---------------------------------------------------------------------------
+python_exec=$(ls "${ROOTFS_PREFIX}"/bin/python3.* 2>/dev/null | head -n1)
+
+rm -f "${ROOTFS_PREFIX}"/lib/python*/EXTERNALLY-MANAGED
+rm -f "${ROOTFS_PREFIX}"/bin/{pip,pip3,pip3.*}
+rm -rf "${ROOTFS_PREFIX}"/lib/python*/site-packages/{pip,pip-*,setuptools,setuptools-*,wheel,wheel-*}
+rm -rf "${ROOTFS_PREFIX}"/lib/{libtcl*.so*,tcl*,tk*,itcl*,thread*}
+rm -rf "${ROOTFS_PREFIX}"/lib/python*/tkinter
+log "removed PEP 668 marker, uv-bundled pip/setuptools/wheel, Tcl/Tk"
+
+if [ "${STRIP_EXTRAS}" != "true" ] && [ -n "${python_exec}" ]; then
+    "${python_exec}" -m ensurepip --default-pip
+    for f in "${ROOTFS_PREFIX}"/bin/pip*; do
+        [ -f "$f" ] && sed -i "1s|#!.*|#!/usr/local/bin/python3|" "$f"
+    done
+    PIP_PACKAGES=$("${python_exec}" -m pip list --format=freeze | cut -d '=' -f1 | xargs)
+    "${python_exec}" -m pip install --no-cache-dir --upgrade $PIP_PACKAGES
+    log "bootstrapped and upgraded pip packages via ensurepip"
+fi
+
+# ---------------------------------------------------------------------------
+# Step 5 - Strip unnecessary components to minimise image size
 # ---------------------------------------------------------------------------
 if [ "${STRIP_EXTRAS}" = "true" ]; then
     log "removing unnecessary components..."
@@ -129,14 +151,8 @@ if [ "${STRIP_EXTRAS}" = "true" ]; then
     # Unneeded CLI tools
     rm -rf "${ROOTFS_PREFIX}"/bin/{pip*,idle*,pydoc*,python*-config}
 
-    # Tcl/Tk libraries (no GUI in distroless)
-    rm -rf "${ROOTFS_PREFIX}"/lib/{libtcl*.so*,tcl*,tk*,itcl*,thread*}
-
     # Python stdlib modules not needed at runtime
-    rm -rf "${ROOTFS_PREFIX}"/lib/python*/{tkinter,idlelib,ensurepip,pydoc_data,turtle.py,turtledemo,__phello__}
-
-    # Bundled package managers (uv replaces these)
-    rm -rf "${ROOTFS_PREFIX}"/lib/python*/site-packages/{pip,pip-*,setuptools,setuptools-*,wheel,wheel-*}
+    rm -rf "${ROOTFS_PREFIX}"/lib/python*/{idlelib,ensurepip,pydoc_data,turtle.py,turtledemo,__phello__}
 
     # Man pages and terminfo (already in base layer)
     rm -rf "${ROOTFS_PREFIX}"/share/{man,terminfo}
@@ -147,7 +163,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 5 — Verify the installation
+# Step 6 - Verify the installation
 # ---------------------------------------------------------------------------
 python_bin=$(ls "${ROOTFS_PREFIX}"/bin/python3.* 2>/dev/null | head -n1)
 

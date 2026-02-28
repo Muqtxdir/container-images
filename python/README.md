@@ -1,5 +1,9 @@
 # Python Images
 
+![Python 3.14](https://img.shields.io/badge/python-3.14-blue?logo=python&logoColor=white)
+![Python 3.13](https://img.shields.io/badge/python-3.13-blue?logo=python&logoColor=white)
+![Latest](https://img.shields.io/badge/python-latest-green?logo=python&logoColor=white)
+
 Python container images built using [uv's standalone Python](https://github.com/astral-sh/python-build-standalone), available across multiple base image variants.
 
 ## Features

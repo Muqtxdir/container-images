@@ -7,9 +7,10 @@ SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 COPY --from=astral-sh/uv /uv /bin/uv
 
 ARG PYTHON_VERSION
+ARG STRIP_EXTRAS
 RUN --mount=type=bind,source=install-python.sh,target=/install-python.sh <<-EOT
-  mkdir -p /staging/usr/local/{bin,include,lib,share}
-  sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/staging/usr/local --strip=false
+  	mkdir -p /staging/usr/local/{bin,include,lib,share}
+  	sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/staging/usr/local --strip=${STRIP_EXTRAS}
 EOT
 
 FROM container-base AS python-base

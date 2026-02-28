@@ -139,6 +139,7 @@ target "apk" {
     target = variant
     args = {
         PYTHON_VERSION = version == "latest" ? "" : version
+        STRIP_EXTRAS   = variant == "minimal" ? "true" : "false"
     }
     tags        = python_image_tags(version, variant == "dev" ? "-dev" : "", GITHUB_REPOSITORY, DOCKER_REPOSITORY)
     labels      = oci_labels(version, "-${variant}")
@@ -162,6 +163,7 @@ target "apt" {
     target = variant
     args = {
         PYTHON_VERSION = version == "latest" ? "" : version
+        STRIP_EXTRAS   = "false"
     }
     tags        = python_image_tags(version, variant == "dev" ? "-${distro}-dev" : "-${distro}", GITHUB_REPOSITORY, DOCKER_REPOSITORY)
     labels      = oci_labels(version, "-${distro}-${variant}")
