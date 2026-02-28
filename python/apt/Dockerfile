@@ -13,15 +13,7 @@ RUN --mount=type=bind,source=install-python.sh,target=/install-python.sh <<-EOT
   	sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/staging/usr/local --strip=${STRIP_EXTRAS}
 EOT
 
-FROM container-base AS python-base
-
-SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
-
-COPY --from=python-builder /staging /
-
-CMD ["python"]
-
-FROM python-base AS minimal
+FROM container-base AS minimal
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
@@ -38,9 +30,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 	apt-get clean
 EOT
 
-USER nonroot
+COPY --from=python-builder /staging /
 
-FROM python-base AS dev
+USER nonroot
+CMD ["python"]
+
+FROM container-base AS dev
 
 # buildpack-deps:bookworm-curl + scm + full + python-specific deps
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -111,3 +106,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 EOT
 
 COPY --from=astral-sh/uv /uv /uvx /usr/local/bin/
+COPY --from=python-builder /staging /
+
+CMD ["python"]

@@ -4,23 +4,29 @@ contents:
   repositories:
     - https://packages.wolfi.dev/os
   packages:
-    - bzip2
-    - ca-certificates
-    - expat
-    - gcc
-    - gdbm
+    - ca-certificates-bundle
     - glibc
-    - libxcrypt
+    - glibc-locale-posix
+    - ld-linux
+    - libbz2-1
+    - libcrypt1
+    - libcrypto3
+    - libexpat1
     - libffi
+    - libgcc
+    - libssl3
+    - libstdc++
+    - libuuid
+    - libxcrypt
     - mpdecimal
     - ncurses
-    - openssl
+    - ncurses-terminfo-base
     - readline
-    - sqlite
-    - tini
-    - util-linux
+    - sqlite-libs
     - xz
     - zlib
+    - tzdata
+    - tini
 
 accounts:
   groups:

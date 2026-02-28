@@ -130,7 +130,10 @@ rm -f "${ROOTFS_PREFIX}"/bin/{pip,pip3,pip3.*}
 rm -rf "${ROOTFS_PREFIX}"/lib/python*/site-packages/{pip,pip-*,setuptools,setuptools-*,wheel,wheel-*}
 rm -rf "${ROOTFS_PREFIX}"/lib/{libtcl*.so*,tcl*,tk*,itcl*,thread*}
 rm -rf "${ROOTFS_PREFIX}"/lib/python*/tkinter
-log "removed PEP 668 marker, uv-bundled pip/setuptools/wheel, Tcl/Tk"
+rm -rf "${ROOTFS_PREFIX}"/lib/python*/test
+rm -rf "${ROOTFS_PREFIX}"/lib/python*/lib2to3
+find "${ROOTFS_PREFIX}" -type d -name __pycache__ -exec rm -rf {} +
+log "removed PEP 668 marker, uv-bundled pip/setuptools/wheel, Tcl/Tk, test, lib2to3, __pycache__"
 
 if [ "${STRIP_EXTRAS}" != "true" ] && [ -n "${python_exec}" ]; then
     "${python_exec}" -m ensurepip --default-pip
