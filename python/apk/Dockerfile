@@ -10,13 +10,6 @@ RUN --mount=type=bind,source=apk/minimal.yml,target=/minimal.yml <<-EOT
     tar -xpf /rootfs.tar.gz -C /rootfs
 EOT
 
-COPY --from=astral-sh/uv /uv /bin/uv
-
-ARG PYTHON_VERSION
-RUN --mount=type=bind,source=install-python.sh,target=/install-python.sh <<-EOT
-  sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/rootfs/usr/local --strip=true
-EOT
-
 FROM container-base AS dev-builder
 
 SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
@@ -27,16 +20,21 @@ RUN --mount=type=bind,source=apk/dev.yml,target=/dev.yml <<-EOT
     tar -xpf /rootfs.tar.gz -C /rootfs
 EOT
 
+FROM container-base AS python-builder
+
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
+
 COPY --from=astral-sh/uv /uv /bin/uv
 
 ARG PYTHON_VERSION
 RUN --mount=type=bind,source=install-python.sh,target=/install-python.sh <<-EOT
-  sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/rootfs/usr/local --strip=false
+  sh /install-python.sh --python-version="${PYTHON_VERSION}" --path=/rootfs/usr/local --strip=true
 EOT
 
 FROM scratch AS minimal
 
 COPY --from=minimal-builder /rootfs /
+COPY --from=python-builder /rootfs/usr/local /usr/local
 
 USER nonroot
 ENTRYPOINT ["tini", "--", "python"]
@@ -44,6 +42,7 @@ ENTRYPOINT ["tini", "--", "python"]
 FROM scratch AS dev
 
 COPY --from=dev-builder /rootfs /
+COPY --from=python-builder /rootfs/usr/local /usr/local
 COPY --from=astral-sh/uv /uv /uvx /usr/local/bin/
 
 ENTRYPOINT ["tini", "--"]

@@ -83,6 +83,24 @@ function "oci_annotations" {
 }
 
 # ---------------------------------------------------------------------------
+# Cache functions
+# ---------------------------------------------------------------------------
+
+function "cache_from" {
+    params = [tag]
+    result = [
+        "type=registry,ref=ghcr.io/${lower(GITHUB_REPOSITORY)}/buildcache:${tag}"
+    ]
+}
+
+function "cache_to" {
+    params = [tag]
+    result = [
+        "type=registry,ref=ghcr.io/${lower(GITHUB_REPOSITORY)}/buildcache:${tag},compression=zstd,compression-level=12,ignore-error=true"
+    ]
+}
+
+# ---------------------------------------------------------------------------
 # Common settings
 # ---------------------------------------------------------------------------
 
@@ -90,9 +108,9 @@ target "common" {
     contexts = {
       "astral-sh/uv" = "docker-image://ghcr.io/astral-sh/uv:latest"
     }
-    platforms = ["linux/arm64", "linux/amd64"]
-    output    = ["type=image,compression=zstd,compression-level=19,oci-mediatypes=true,force-compression=true"]
-    pull      = true
+    platforms   = ["linux/arm64", "linux/amd64"]
+    output      = ["type=image,compression=zstd,compression-level=19,oci-mediatypes=true,force-compression=true"]
+    pull        = true
     attest = [
         "type=provenance,mode=max,builder-id=https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
         "type=sbom,generator=docker/buildkit-syft-scanner"
@@ -122,9 +140,11 @@ target "apk" {
     args = {
         PYTHON_VERSION = version == "latest" ? "" : version
     }
-    tags = python_image_tags(version, variant == "dev" ? "-dev" : "", GITHUB_REPOSITORY, DOCKER_REPOSITORY)
-    labels = oci_labels(version, "-${variant}")
+    tags        = python_image_tags(version, variant == "dev" ? "-dev" : "", GITHUB_REPOSITORY, DOCKER_REPOSITORY)
+    labels      = oci_labels(version, "-${variant}")
     annotations = oci_annotations(version, "-${variant}")
+    cache-from  = cache_from("python-${version == "latest" ? "latest" : replace(version, ".", "-")}-apk-${variant}")
+    cache-to    = cache_to("python-${version == "latest" ? "latest" : replace(version, ".", "-")}-apk-${variant}")
 }
 
 target "apt" {
@@ -149,4 +169,6 @@ target "apt" {
     tags        = python_image_tags(version, variant == "dev" ? "-${distro}-dev" : "-${distro}", GITHUB_REPOSITORY, DOCKER_REPOSITORY)
     labels      = oci_labels(version, "-${distro}-${variant}")
     annotations = oci_annotations(version, "-${distro}-${variant}")
+    cache-from  = cache_from("python-${version == "latest" ? "latest" : replace(version, ".", "-")}-${distro}-${variant}")
+    cache-to    = cache_to("python-${version == "latest" ? "latest" : replace(version, ".", "-")}-${distro}-${variant}")
 }

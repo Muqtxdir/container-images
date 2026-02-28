@@ -3,8 +3,8 @@ name: Build Python images
 on:
   workflow_dispatch:
   schedule:
-    # Run daily at midnight
-    - cron: '0 0 * * *'
+    # Run every Monday at midnight
+    - cron: '0 0 * * 1'
   push:
     paths:
       - 'python/**'
