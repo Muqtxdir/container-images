@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # install-python.sh - Install a CPython version via uv into a distroless rootfs.
 #
@@ -156,6 +156,7 @@ if [ "${STRIP_EXTRAS}" = "true" ]; then
 
     # Python stdlib modules not needed at runtime
     rm -rf "${ROOTFS_PREFIX}"/lib/python*/{idlelib,ensurepip,pydoc_data,turtle.py,turtledemo,__phello__}
+    rm -f "${ROOTFS_PREFIX}"/lib/python*/site-packages/README.txt
 
     # Man pages and terminfo (already in base layer)
     rm -rf "${ROOTFS_PREFIX}"/share/{man,terminfo}
