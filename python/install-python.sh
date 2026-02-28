@@ -137,11 +137,12 @@ log "removed PEP 668 marker, uv-bundled pip/setuptools/wheel, Tcl/Tk, test, lib2
 
 if [ "${STRIP_EXTRAS}" != "true" ] && [ -n "${python_exec}" ]; then
     "${python_exec}" -m ensurepip --default-pip
+    PIP_PACKAGES=$("${python_exec}" -m pip list --format=freeze | cut -d '=' -f1 | xargs)
+    "${python_exec}" -m pip install --no-cache-dir --upgrade $PIP_PACKAGES
+    # Fix shebangs after upgrade (pip reinstall overwrites them)
     for f in "${ROOTFS_PREFIX}"/bin/pip*; do
         [ -f "$f" ] && sed -i "1s|#!.*|#!/usr/local/bin/python3|" "$f"
     done
-    PIP_PACKAGES=$("${python_exec}" -m pip list --format=freeze | cut -d '=' -f1 | xargs)
-    "${python_exec}" -m pip install --no-cache-dir --upgrade $PIP_PACKAGES
     log "bootstrapped and upgraded pip packages via ensurepip"
 fi
 
@@ -157,6 +158,11 @@ if [ "${STRIP_EXTRAS}" = "true" ]; then
     # Python stdlib modules not needed at runtime
     rm -rf "${ROOTFS_PREFIX}"/lib/python*/{idlelib,ensurepip,pydoc_data,turtle.py,turtledemo,__phello__}
     rm -f "${ROOTFS_PREFIX}"/lib/python*/site-packages/README.txt
+
+    # C headers, static libs, and pkg-config (only needed for building extensions)
+    rm -rf "${ROOTFS_PREFIX}"/include
+    rm -rf "${ROOTFS_PREFIX}"/lib/python*/config-*
+    rm -rf "${ROOTFS_PREFIX}"/lib/pkgconfig
 
     # Man pages and terminfo (already in base layer)
     rm -rf "${ROOTFS_PREFIX}"/share/{man,terminfo}
