@@ -156,14 +156,11 @@ target "apt" {
         variant = ["dev", "minimal"]
     }
     contexts = {
-      "container-base" = "docker-image://${distro == "ubuntu" ? "public.ecr.aws/docker/library/ubuntu:latest" : "public.ecr.aws/docker/library/debian:latest"}"
+      "container-base" = "docker-image://ghcr.io/${lower(GITHUB_REPOSITORY)}/${distro}:latest"
     }
     dockerfile = "apt/Dockerfile"
     target = variant
     args = {
-        USER_GID       = "65532"
-        USER_UID       = "65532"
-        USER_NAME      = "nonroot"
         PYTHON_VERSION = version == "latest" ? "" : version
     }
     tags        = python_image_tags(version, variant == "dev" ? "-${distro}-dev" : "-${distro}", GITHUB_REPOSITORY, DOCKER_REPOSITORY)
