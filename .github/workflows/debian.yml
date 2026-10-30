@@ -1,0 +1,32 @@
+name: debian
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - os-images/**
+      - go.mod
+      - go.sum
+      - .github/workflows/debian.yml
+      - .github/workflows/os-images.yml
+  schedule:
+    - cron: "15 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  images:
+    uses: ./.github/workflows/os-images.yml
+    with:
+      distro: debian
+      images: |
+        [
+          {"variant": "stable", "tags": "stable latest main"},
+          {"variant": "testing", "tags": "testing"},
+          {"variant": "unstable", "tags": "unstable"}
+        ]

@@ -1,0 +1,62 @@
+name: os-images
+
+on:
+  workflow_call:
+    inputs:
+      distro:
+        type: string
+        required: true
+      images:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  image:
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(inputs.images) }}
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@v4.1.2
+      - uses: anchore/sbom-action/download-syft@v0.24.3
+
+      - id: build
+        uses: ./os-images
+        with:
+          source: ghcr.io/muqtxdir/container-fs/${{ inputs.distro }}:${{ matrix.variant }}
+          repositories: ghcr.io/${{ github.repository }}/${{ inputs.distro }}
+          tags: ${{ matrix.tags }}
+
+      - run: echo "$IMAGES" > images.txt
+        env:
+          IMAGES: ${{ steps.build.outputs.images }}
+
+      - name: Sign
+        run: xargs cosign sign --yes < images.txt
+
+      - name: Attach SBOMs
+        run: |
+          while read -r image; do
+            syft scan "registry:$image" -o spdx-json=sbom.json
+            cosign attest --yes --type spdxjson --predicate sbom.json "$image"
+          done < images.txt
+
+      - run: sed -E 's/^(.*)@sha256:([0-9a-f]+)$/\2  \1/' images.txt > subjects.txt
+      - uses: actions/attest-build-provenance@v4.2.2
+        with:
+          subject-checksums: subjects.txt
