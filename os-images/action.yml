@@ -1,0 +1,42 @@
+name: os-images
+description: Configure and label a container-fs image and push it under every tag to every repository.
+
+inputs:
+  source:
+    description: Multi-platform base image, e.g. ghcr.io/muqtxdir/container-fs/debian:stable.
+    required: true
+  repositories:
+    description: Repositories to push to, one per line.
+    required: true
+  tags:
+    description: Tags to push, separated by spaces or newlines.
+    required: true
+
+outputs:
+  images:
+    description: Pushed images, one <repository>@<digest> per line.
+    value: ${{ steps.push.outputs.images }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v7.0.0
+      with:
+        go-version-file: ${{ github.action_path }}/../go.mod
+        cache-dependency-path: ${{ github.action_path }}/../go.sum
+    - id: push
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        SOURCE: ${{ inputs.source }}
+        REPOSITORIES: ${{ inputs.repositories }}
+        TAGS: ${{ inputs.tags }}
+      run: |
+        args=(--source="$SOURCE")
+        for repository in $REPOSITORIES; do
+          for tag in $TAGS; do
+            args+=(--target="$repository:$tag")
+          done
+        done
+        images=$(go run . "${args[@]}")
+        printf 'images<<EOF\n%s\nEOF\n' "$images" >> "$GITHUB_OUTPUT"
