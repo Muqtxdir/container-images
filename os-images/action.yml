@@ -1,20 +1,20 @@
 name: os-images
-description: Configure and label a container-fs image and push it under every tag to every repository.
+description: Add the runtime config and labels to a container-fs image, and push it under every tag.
 
 inputs:
   source:
-    description: Multi-platform base image, e.g. ghcr.io/muqtxdir/container-fs/debian:stable.
+    description: Base image.
     required: true
-  repositories:
-    description: Repositories to push to, one per line.
+  repository:
+    description: Where to push.
     required: true
   tags:
-    description: Tags to push, separated by spaces or newlines.
+    description: Tags to push, separated by spaces.
     required: true
 
 outputs:
   images:
-    description: Pushed images, one <repository>@<digest> per line.
+    description: The pushed image as <repository>@<digest>.
     value: ${{ steps.push.outputs.images }}
 
 runs:
@@ -23,19 +23,26 @@ runs:
     - id: push
       shell: bash
       env:
-        IMAGE: ghcr.io/muqtxdir/container-images/os-images:${{ runner.arch == 'ARM64' && 'arm64' || 'amd64' }}
+        ARCHITECTURE: ${{ runner.arch == 'ARM64' && 'arm64' || 'amd64' }}
         SOURCE: ${{ inputs.source }}
-        REPOSITORIES: ${{ inputs.repositories }}
+        REPOSITORY: ${{ inputs.repository }}
         TAGS: ${{ inputs.tags }}
       run: |
-        args=(--source="$SOURCE")
-        for repository in $REPOSITORIES; do
-          for tag in $TAGS; do
-            args+=(--target="$repository:$tag")
-          done
-        done
-        images=$(docker run --rm --user "$(id -u):$(id -g)" \
-          -v "$HOME/.docker:/docker:ro" -e DOCKER_CONFIG=/docker \
-          -e GITHUB_SERVER_URL -e GITHUB_REPOSITORY -e GITHUB_REPOSITORY_OWNER -e GITHUB_SHA \
-          "$IMAGE" "${args[@]}")
-        printf 'images<<EOF\n%s\nEOF\n' "$images" >> "$GITHUB_OUTPUT"
+        images=$(
+          docker run --rm \
+            --volume "$HOME/.docker:/docker:ro" \
+            --env DOCKER_CONFIG=/docker \
+            --env GITHUB_SERVER_URL \
+            --env GITHUB_REPOSITORY \
+            --env GITHUB_REPOSITORY_OWNER \
+            --env GITHUB_SHA \
+            "ghcr.io/muqtxdir/container-images/os-images:$ARCHITECTURE" \
+            --source="$SOURCE" \
+            --repository="$REPOSITORY" \
+            --tags="$TAGS"
+        )
+        {
+          echo "images<<EOF"
+          echo "$images"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"

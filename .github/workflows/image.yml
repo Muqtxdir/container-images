@@ -1,4 +1,4 @@
-# Builds the os-images image from Dockerfile, tagged by architecture.
+# Builds the os-images and python-images images from Dockerfile, tagged by architecture.
 name: image
 
 on:
@@ -8,6 +8,7 @@ on:
       - Dockerfile
       - go.mod
       - go.sum
+      - internal/**
       - os-images/**
       - .github/workflows/image.yml
   workflow_dispatch:
@@ -24,6 +25,7 @@ jobs:
   image:
     strategy:
       matrix:
+        command: [os-images]
         arch: [amd64, arm64]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-26.04-arm' || 'ubuntu-26.04' }}
     steps:
@@ -36,7 +38,8 @@ jobs:
       - uses: docker/build-push-action@v7.4.0
         with:
           push: true
-          tags: ghcr.io/muqtxdir/container-images/os-images:${{ matrix.arch }}
+          target: ${{ matrix.command }}
+          tags: ghcr.io/muqtxdir/container-images/${{ matrix.command }}:${{ matrix.arch }}
           provenance: false
-          cache-from: type=registry,ref=ghcr.io/muqtxdir/container-images/os-images:${{ matrix.arch }}-buildcache
-          cache-to: type=registry,ref=ghcr.io/muqtxdir/container-images/os-images:${{ matrix.arch }}-buildcache,mode=max,image-manifest=true,oci-mediatypes=true
+          cache-from: type=registry,ref=ghcr.io/muqtxdir/container-images/${{ matrix.command }}:${{ matrix.arch }}-buildcache
+          cache-to: type=registry,ref=ghcr.io/muqtxdir/container-images/${{ matrix.command }}:${{ matrix.arch }}-buildcache,mode=max,image-manifest=true,oci-mediatypes=true

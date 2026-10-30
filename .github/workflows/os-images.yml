@@ -39,7 +39,7 @@ jobs:
         uses: ./os-images
         with:
           source: ghcr.io/muqtxdir/container-fs/${{ inputs.distro }}:${{ matrix.variant }}
-          repositories: ghcr.io/${{ github.repository }}/${{ inputs.distro }}
+          repository: ghcr.io/${{ github.repository }}/${{ inputs.distro }}
           tags: ${{ matrix.tags }}
 
       - run: echo "$IMAGES" > images.txt
