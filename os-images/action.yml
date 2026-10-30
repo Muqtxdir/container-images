@@ -20,14 +20,10 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-go@v7.0.0
-      with:
-        go-version-file: ${{ github.action_path }}/../go.mod
-        cache-dependency-path: ${{ github.action_path }}/../go.sum
     - id: push
       shell: bash
-      working-directory: ${{ github.action_path }}
       env:
+        IMAGE: ghcr.io/muqtxdir/container-images/os-images:${{ runner.arch == 'ARM64' && 'arm64' || 'amd64' }}
         SOURCE: ${{ inputs.source }}
         REPOSITORIES: ${{ inputs.repositories }}
         TAGS: ${{ inputs.tags }}
@@ -38,5 +34,8 @@ runs:
             args+=(--target="$repository:$tag")
           done
         done
-        images=$(go run . "${args[@]}")
+        images=$(docker run --rm --user "$(id -u):$(id -g)" \
+          -v "$HOME/.docker:/docker:ro" -e DOCKER_CONFIG=/docker \
+          -e GITHUB_SERVER_URL -e GITHUB_REPOSITORY -e GITHUB_REPOSITORY_OWNER -e GITHUB_SHA \
+          "$IMAGE" "${args[@]}")
         printf 'images<<EOF\n%s\nEOF\n' "$images" >> "$GITHUB_OUTPUT"

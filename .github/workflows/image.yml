@@ -1,0 +1,38 @@
+# Builds the os-images image from Dockerfile, tagged by architecture.
+name: image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - go.mod
+      - go.sum
+      - os-images/**
+      - .github/workflows/image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  image:
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-26.04-arm' || 'ubuntu-26.04' }}
+    steps:
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7.4.0
+        with:
+          push: true
+          tags: ghcr.io/muqtxdir/container-images/os-images:${{ matrix.arch }}
+          provenance: false
+          cache-from: type=registry,ref=ghcr.io/muqtxdir/container-images/os-images:${{ matrix.arch }}-buildcache
+          cache-to: type=registry,ref=ghcr.io/muqtxdir/container-images/os-images:${{ matrix.arch }}-buildcache,mode=max,image-manifest=true,oci-mediatypes=true
