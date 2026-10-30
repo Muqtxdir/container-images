@@ -10,6 +10,7 @@ on:
       - go.sum
       - internal/**
       - os-images/**
+      - python-images/**
       - .github/workflows/image.yml
   workflow_dispatch:
 
@@ -25,7 +26,7 @@ jobs:
   image:
     strategy:
       matrix:
-        command: [os-images]
+        command: [os-images, python-images]
         arch: [amd64, arm64]
     runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-26.04-arm' || 'ubuntu-26.04' }}
     steps:

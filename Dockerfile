@@ -24,3 +24,7 @@ STOPSIGNAL SIGTERM
 FROM base AS os-images
 COPY --from=build /app/os-images /os-images
 ENTRYPOINT ["/os-images"]
+
+FROM base AS python-images
+COPY --from=build /app/python-images /python-images
+ENTRYPOINT ["/python-images"]

@@ -1,0 +1,55 @@
+name: python-images
+description: Build a Python image on a base image for every CPython in a python-build-standalone release, and push them.
+
+inputs:
+  source:
+    description: Base image.
+    required: true
+  repository:
+    description: Where to push.
+    required: true
+  variant:
+    description: Tag suffix.
+    required: true
+  release:
+    description: python-build-standalone release.
+    default: latest
+
+outputs:
+  images:
+    description: Pushed images, one <repository>@<digest> per line.
+    value: ${{ steps.push.outputs.images }}
+
+runs:
+  using: composite
+  steps:
+    - id: push
+      shell: bash
+      env:
+        ARCHITECTURE: ${{ runner.arch == 'ARM64' && 'arm64' || 'amd64' }}
+        SOURCE: ${{ inputs.source }}
+        REPOSITORY: ${{ inputs.repository }}
+        VARIANT: ${{ inputs.variant }}
+        RELEASE: ${{ inputs.release }}
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        images=$(
+          docker run --rm \
+            --volume "$HOME/.docker:/docker:ro" \
+            --env DOCKER_CONFIG=/docker \
+            --env GITHUB_TOKEN \
+            --env GITHUB_SERVER_URL \
+            --env GITHUB_REPOSITORY \
+            --env GITHUB_REPOSITORY_OWNER \
+            --env GITHUB_SHA \
+            "ghcr.io/muqtxdir/container-images/python-images:$ARCHITECTURE" \
+            --source="$SOURCE" \
+            --repository="$REPOSITORY" \
+            --variant="$VARIANT" \
+            --release="$RELEASE"
+        )
+        {
+          echo "images<<EOF"
+          echo "$images"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"

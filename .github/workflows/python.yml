@@ -1,0 +1,68 @@
+name: python
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - python-images/action.yml
+      - .github/workflows/python.yml
+  workflow_run:
+    workflows: [debian, ubuntu, fedora]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.name || 'all' }}
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  image:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: ${{ fromJSON(github.event.workflow_run.name && format('["{0}"]', github.event.workflow_run.name) || '["debian", "ubuntu", "fedora"]') }}
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@v4.1.2
+      - uses: anchore/sbom-action/download-syft@v0.24.3
+
+      - id: build
+        uses: ./python-images
+        with:
+          source: ghcr.io/${{ github.repository }}/${{ matrix.distro }}:latest
+          repository: ghcr.io/${{ github.repository }}/python
+          variant: ${{ matrix.distro }}
+
+      - run: echo "$IMAGES" > images.txt
+        env:
+          IMAGES: ${{ steps.build.outputs.images }}
+
+      - name: Sign
+        run: xargs cosign sign --yes < images.txt
+
+      - name: Attach SBOMs
+        run: |
+          while read -r image; do
+            syft scan "registry:$image" -o spdx-json=sbom.json
+            cosign attest --yes --type spdxjson --predicate sbom.json "$image"
+          done < images.txt
+
+      - run: sed -E 's/^(.*)@sha256:([0-9a-f]+)$/\2  \1/' images.txt > subjects.txt
+      - uses: actions/attest-build-provenance@v4.2.2
+        with:
+          subject-checksums: subjects.txt
